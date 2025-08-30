@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import { router as usersRouter } from "./users.js";
 import { registerRequest } from "./middlewares/register.js";
 import handleZodError from './errorHandlers/zodError.js';
+import handlePrismaError from './errorHandlers/prismaError.js';
 import { PrismaClient } from './generated/prisma/index.js';
 
 const prisma = new PrismaClient()
@@ -38,7 +39,11 @@ app.use("/api/users", usersRouter);
 
 const errorHandler = (err, req, res, next) => {
   console.log(err.message);
+  console.log(err.name, "error name");
+  console.log(err.code, "---- code name");
+  console.log(err.constructor.name, "error type");
   if (handleZodError(err, res)) return;
+  if (handlePrismaError(err, res)) return;
   res.status(500).json({ error: 'Internal Server Error' });
 };
 

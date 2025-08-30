@@ -1,96 +1,99 @@
-import {Router} from 'express';
-import fs from 'fs'
-import path from 'path';
-import { fileURLToPath } from 'url';
-import validateSaveUser from './middlewares/saveUserValidator.js'
+import { Router } from "express";
+import path from "path";
+import { fileURLToPath } from "url";
+import validateSaveUser from "./middlewares/saveUserValidator.js";
+import { PrismaClient } from "./generated/prisma/index.js";
 
+const prisma = new PrismaClient();
 export const router = Router();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const usersFilePath = path.join(__dirname, 'data.json');
+const usersFilePath = path.join(__dirname, "data.json");
 
-console.log(usersFilePath, 'usersFilePath');
+console.log(usersFilePath, "usersFilePath");
 
-router.get('/', (req, res) => {
+router.get("/", async (_req, res, next) => {
   try {
-    const data = fs.readFileSync(usersFilePath, 'utf-8');
-    const users = JSON.parse(data);
-    res.json(users);
+    const users = await prisma.user.findMany();
+    res.json({
+      success: true,
+      data: users,
+    });
   } catch (err) {
-    console.error('Error reading or parsing users file:', err.message);
-    res.status(500).json({ error: 'Internal Server Error' });
+    next(err);
   }
 });
 
-router.post('/', validateSaveUser, (req, res) => {
+router.post("/", validateSaveUser, async (req, res, next) => {
   try {
     const newUser = req.body;
-    const data = fs.readFileSync(usersFilePath, 'utf-8');
-    const users = JSON.parse(data);
-    users.push(newUser);
-    fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2));
-    res.json(users);
-    
+    const result = await prisma.user.create({ data: newUser });
+    console.log(result, "result");
+    res.status(201).json({
+      success: true,
+      message: "User created successfully",
+      data: result,
+    });
   } catch (err) {
-    console.error('Error reading or parsing users file:', err.message);
-    res.status(500).json({ error: 'Internal Server Error' });
+    next(err);
   }
 });
 
-router.get('/:id', (req, res) => {
-  const userId = req.params.id;
+router.get("/:id", async (req, res, next) => {
+  const id = req.params.id;
   try {
-    const data = fs.readFileSync(usersFilePath, 'utf-8');
-    const users = JSON.parse(data);
-    const user = users.find(u => u.id === userId);
+    const user = await prisma.user.findUnique({
+      where: {
+        id,
+      },
+    });
     if (user) {
-      res.json(user);
+      res.json({
+        success: true,
+        data: user,
+      });
     } else {
-      res.status(404).json({ error: 'User not found' });
+      res.status(404).json({ success: 'false', error: "User not found" });
     }
   } catch (err) {
-    console.error('Error reading or parsing users file:', err.message);
-    res.status(500).json({ error: 'Internal Server Error' });
+    next(err);
   }
 });
 
-router.put('/:id', (req, res) => {
-  const userId = req.params.id;
+router.put("/:id", validateSaveUser, async (req, res, next) => {
+  const id = req.params.id;
   try {
     const newUser = req.body;
-    const data = fs.readFileSync(usersFilePath, 'utf-8');
-    const users = JSON.parse(data);
-    const user = users.find(u => u.id === userId);
-    if (user) {
-      const updated = { ...user, ...newUser }
-      console.log(updated, 'updated');
-      const updatedUsers = users.map(u => u.id === userId ? updated : u);
-      fs.writeFileSync(usersFilePath, JSON.stringify(updatedUsers, null, 2));
-      res.json(updated);
-    } else {
-      res.status(404).json({ error: 'User not found' });
-    }
+    const updatedUser = await prisma.user.update({
+      where: { id },      // El id del usuario a actualizar
+      data: {                     // Los campos que quieres modificar
+        name: newUser.name,
+        email: newUser.email
+      }
+    });
+    console.log(updatedUser, "updatedUser");
+    res.json({
+      success: true,
+      message: "User updated successfully",
+      data: updatedUser,
+    });
   } catch (err) {
-    console.error('Error reading or parsing users file:', err.message);
-    res.status(500).json({ error: 'Internal Server Error' });
+    next(err);
   }
 });
 
-router.delete('/:id', (req, res) => {
+router.delete("/:id", async (req, res, next) => {
   const userId = req.params.id;
   try {
-    const data = fs.readFileSync(usersFilePath, 'utf-8');
-    const users = JSON.parse(data);
-    const updatedUsers = users.filter(u => u.id !== userId);
-    if (updatedUsers.length < users.length) {
-      console.log(updatedUsers, 'updatedUsers');
-      fs.writeFileSync(usersFilePath, JSON.stringify(updatedUsers, null, 2));
-      res.json({ message: 'User deleted successfully' });
-    } else {
-      res.status(404).json({ error: 'User not found' });
-    }
+    const deletedUser = await prisma.user.delete({
+      where: { id: userId }
+    });
+    res.json({
+      success: true,
+      message: "User deleted successfully",
+      data: deletedUser,
+    });
   } catch (err) {
-    console.error('Error reading or parsing users file:', err.message);
-    res.status(500).json({ error: 'Internal Server Error' });
+    next(err)
   }
 });
