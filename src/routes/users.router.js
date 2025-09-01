@@ -1,18 +1,12 @@
 import { Router } from "express";
-import path from "path";
-import { fileURLToPath } from "url";
-import validateSaveUser from "./middlewares/saveUserValidator.js";
-import prisma from "./prismaClient.js";
-import hashPassword from "./helpers/hashPassword.js";
-export const router = Router();
+import validateSaveUser from "../middlewares/saveUserValidator.js";
+import prisma from "../prismaClient.js";
+import hashPassword from "../helpers/hashPassword.js";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const usersFilePath = path.join(__dirname, "data.json");
-
-console.log(usersFilePath, "usersFilePath");
+export const userRouter = Router();
 
 // Get all users
-router.get("/", async (_req, res, next) => {
+userRouter.get("/", async (_req, res, next) => {
   console.log(_req.user, "_req.user");
   try {
     const users = await prisma.user.findMany();
@@ -26,7 +20,7 @@ router.get("/", async (_req, res, next) => {
 });
 
 // Create a new user
-router.post("/", validateSaveUser, async (req, res, next) => {
+userRouter.post("/", validateSaveUser, async (req, res, next) => {
   try {
     const newUser = req.body;
     newUser.password = await hashPassword(newUser.password);
@@ -43,7 +37,7 @@ router.post("/", validateSaveUser, async (req, res, next) => {
 });
 
 // Get a user by ID
-router.get("/:id", async (req, res, next) => {
+userRouter.get("/:id", async (req, res, next) => {
   const id = req.params.id;
   try {
     const user = await prisma.user.findUnique({
@@ -65,7 +59,7 @@ router.get("/:id", async (req, res, next) => {
 });
 
 // Update a user by ID
-router.put("/:id", validateSaveUser, async (req, res, next) => {
+userRouter.put("/:id", validateSaveUser, async (req, res, next) => {
   const id = req.params.id;
   try {
     const newUser = req.body;
@@ -86,7 +80,7 @@ router.put("/:id", validateSaveUser, async (req, res, next) => {
 });
 
 // Delete a user by ID
-router.delete("/:id", async (req, res, next) => {
+userRouter.delete("/:id", async (req, res, next) => {
   const userId = req.params.id;
   try {
     const deletedUser = await prisma.user.delete({

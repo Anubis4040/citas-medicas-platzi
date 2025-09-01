@@ -1,4 +1,4 @@
-import { Login } from "../schemas/login.js";
+import { Login } from "../request-validators/login.js";
 
 
 export default function loginValidator(req, _res, next) {

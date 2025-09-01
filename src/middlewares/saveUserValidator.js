@@ -1,4 +1,4 @@
-import { User } from "../schemas/user.js";
+import { User } from "../request-validators/user.js";
 
 export default function validateSaveUser(req, res, next) {
   try {

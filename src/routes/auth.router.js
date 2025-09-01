@@ -1,12 +1,12 @@
 import { Router } from "express";
-import loginValidator from "./middlewares/loginValidator.js";
-import prisma from "./prismaClient.js";
+import loginValidator from "../middlewares/loginValidator.js";
+import prisma from "../prismaClient.js";
 import jwt from "jsonwebtoken";
-import { verifyPassword } from "./helpers/verifyPassword.js";
+import { verifyPassword } from "../helpers/verifyPassword.js";
 
-export const router = Router();
+export const authRouter = Router();
 
-router.post("/login", loginValidator, async (req, res) => {
+authRouter.post("/login", loginValidator, async (req, res) => {
   const { email, password } = req.body;
   const foundUser = await prisma.user.findUnique({
     where: { email }
