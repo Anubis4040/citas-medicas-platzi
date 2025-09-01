@@ -2,9 +2,8 @@ import { Router } from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import validateSaveUser from "./middlewares/saveUserValidator.js";
-import { PrismaClient } from "./generated/prisma/index.js";
-
-const prisma = new PrismaClient();
+import prisma from "./prismaClient.js";
+import hashPassword from "./helpers/hashPassword.js";
 export const router = Router();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -12,7 +11,9 @@ const usersFilePath = path.join(__dirname, "data.json");
 
 console.log(usersFilePath, "usersFilePath");
 
+// Get all users
 router.get("/", async (_req, res, next) => {
+  console.log(_req.user, "_req.user");
   try {
     const users = await prisma.user.findMany();
     res.json({
@@ -24,9 +25,11 @@ router.get("/", async (_req, res, next) => {
   }
 });
 
+// Create a new user
 router.post("/", validateSaveUser, async (req, res, next) => {
   try {
     const newUser = req.body;
+    newUser.password = await hashPassword(newUser.password);
     const result = await prisma.user.create({ data: newUser });
     console.log(result, "result");
     res.status(201).json({
@@ -39,6 +42,7 @@ router.post("/", validateSaveUser, async (req, res, next) => {
   }
 });
 
+// Get a user by ID
 router.get("/:id", async (req, res, next) => {
   const id = req.params.id;
   try {
@@ -60,16 +64,15 @@ router.get("/:id", async (req, res, next) => {
   }
 });
 
+// Update a user by ID
 router.put("/:id", validateSaveUser, async (req, res, next) => {
   const id = req.params.id;
   try {
     const newUser = req.body;
+    newUser.password = await hashPassword(newUser.password);
     const updatedUser = await prisma.user.update({
       where: { id },      // El id del usuario a actualizar
-      data: {                     // Los campos que quieres modificar
-        name: newUser.name,
-        email: newUser.email
-      }
+      data: newUser
     });
     console.log(updatedUser, "updatedUser");
     res.json({
@@ -82,6 +85,7 @@ router.put("/:id", validateSaveUser, async (req, res, next) => {
   }
 });
 
+// Delete a user by ID
 router.delete("/:id", async (req, res, next) => {
   const userId = req.params.id;
   try {

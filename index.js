@@ -1,10 +1,12 @@
 import express from "express";
 import dotenv from "dotenv";
 import { router as usersRouter } from "./users.js";
+import { router as authRouter } from "./authRouter.js";
 import { registerRequest } from "./middlewares/register.js";
 import handleZodError from './errorHandlers/zodError.js';
 import handlePrismaError from './errorHandlers/prismaError.js';
 import { PrismaClient } from './generated/prisma/index.js';
+import authMiddleware from "./middlewares/auth.js";
 
 const prisma = new PrismaClient()
 
@@ -35,7 +37,8 @@ mainRotuer.get("/prisma-test", async (req, res, next) => {
 
 // Define routes
 app.use("/api", mainRotuer);
-app.use("/api/users", usersRouter);
+app.use("/api/users", authMiddleware, usersRouter);
+app.use("/api/auth", authRouter);
 
 const errorHandler = (err, req, res, next) => {
   console.log(err.message);
