@@ -27,7 +27,7 @@ apiRouter.use("/auth", authRouter);
 
 app.use("/api", apiRouter);
 
-const errorHandler = (err, _req, res, _next) => {
+const errorHandler = (err, _req, res) => {
   console.log(err.message);
   if (handleZodError(err, res)) return;
   if (handlePrismaError(err, res)) return;
