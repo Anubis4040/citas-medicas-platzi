@@ -20,7 +20,7 @@ model User {
   email     String   @unique
   password  String
   role      Role
-  // appointments Appointment[]
+  appointments Appointment[]
   createdAt DateTime @default(now())
 
   @@map("users")
@@ -30,4 +30,26 @@ enum Role {
   USER
   ADMIN
 }
+
+model Appointment {
+  id        String   @id @default(cuid())
+  date      DateTime
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  timeBlock TimeBlock @relation(fields: [timeBlockId], references: [id])
+  timeBlockId String
+  createdAt DateTime @default(now())
+  @@map("appointments")
+}
+
+model TimeBlock {
+  id        String   @id @default(cuid())
+  startTime DateTime
+  endTime   DateTime
+  appointments Appointment[]
+  createdAt DateTime @default(now())
+  @@map("time_blocks")
+}
+
+
 

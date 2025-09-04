@@ -129,6 +129,21 @@ exports.Prisma.UserScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.AppointmentScalarFieldEnum = {
+  id: 'id',
+  date: 'date',
+  userId: 'userId',
+  timeBlockId: 'timeBlockId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.TimeBlockScalarFieldEnum = {
+  id: 'id',
+  startTime: 'startTime',
+  endTime: 'endTime',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -144,7 +159,9 @@ exports.Role = exports.$Enums.Role = {
 };
 
 exports.Prisma.ModelName = {
-  User: 'User'
+  User: 'User',
+  Appointment: 'Appointment',
+  TimeBlock: 'TimeBlock'
 };
 
 /**
