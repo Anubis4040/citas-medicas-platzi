@@ -7,9 +7,12 @@ export const userRouter = Router();
 
 // Get all users
 userRouter.get("/", async (_req, res, next) => {
-  console.log(_req.user, "_req.user");
   try {
-    const users = await prisma.user.findMany();
+    const users = await prisma.user.findMany({
+      include: {
+        appointments: true, // Esto incluye las citas relacionadas
+      }
+    });
     res.json({
       success: true,
       data: users,
@@ -73,6 +76,23 @@ userRouter.put("/:id", validateSaveUser, async (req, res, next) => {
       success: true,
       message: "User updated successfully",
       data: updatedUser,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Get appointments for a specific user
+userRouter.get("/:id/appointments", async (req, res, next) => {
+  const id = req.params.id;
+  try {
+    const appointments = await prisma.appointment.findMany({
+      where: { userId: id }
+    });
+    res.json({
+      success: true,
+      message: "Appointments retrieved successfully",
+      data: appointments,
     });
   } catch (err) {
     next(err);
